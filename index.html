@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Tra cứu đất phường Hòa Lợi — Demo</title>
+<title>Tra cứu vị trí đất — ước tính nghĩa vụ tài chính về đất đai 2026</title>
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/@turf/turf@7/turf.min.js"></script>
@@ -110,7 +110,7 @@
 
 <header>
   <div class="mark">HL</div>
-  <h1>Tra cứu đất phường Hòa Lợi<small>Demo · thửa đất + bảng giá 2026 (khu Hòa Lợi cũ)</small></h1>
+  <h1>Tra cứu vị trí đất, <b>ước tính</b> thực hiện nghĩa vụ tài chính về đất đai 2026<small>Demo</small></h1>
 </header>
 
 <div id="side" class="panel">
@@ -165,7 +165,7 @@
   <div class="note">
     Thông tin chỉ mang tính <b>tham khảo</b>, không thay thế văn bản pháp lý gốc.
     Giá đất theo Nghị quyết 87/2025/NQ-HĐND (áp dụng từ 01/01/2026). Ranh thửa từ dữ liệu địa chính 2022.
-    Thuế đất tính theo TT 153/2011/TT-BTC, hạn mức theo QĐ 36/2024 Bình Dương — số liệu là ước tính, không phải thông báo thuế chính thức.
+    Thuế đất tính theo TT 153/2011/TT-BTC, hạn mức theo QĐ 36/2024 Bình Dương — số liệu là <b>ước tính</b>, không phải thông báo thuế chính thức.
     Lớp quy hoạch theo đồ án quy hoạch phân khu (điều chỉnh cục bộ) Hòa Lợi - Tân Định.
     Đã ẩn thông tin chủ sử dụng đất. Nền bản đồ © OpenStreetMap.
   </div>
@@ -174,7 +174,9 @@
 <script>
 /* ---------- Bảng màu nhóm loại đất ---------- */
 const COLORS = {
-  "Đất ở/thổ cư":"#e74c3c","Cây lâu năm/công nghiệp":"#27ae60","Đất lúa":"#f1c40f",
+  "Đất ở/thổ cư":"#e74c3c",
+  "Đất trồng cây lâu năm/công nghiệp/Đất lúa":"#27ae60",
+  "Đất trồng cây lâu năm/công nghiệp":"#27ae60","Đất lúa":"#27ae60","Cây lâu năm/công nghiệp":"#27ae60",
   "Đất vườn":"#16a085","Lâm nghiệp":"#196f3d","Hạ tầng/công trình":"#7f8c8d",
   "Sông/mặt nước":"#3498db","Khác":"#bdc3c7"
 };
@@ -314,8 +316,8 @@ map.on("load", async ()=>{
       const giaTri=dt*dgO*1000;                 // giá trị thửa theo giá NN (đồng)
       const thue=thueDatO(dt,dgO,hm);           // thuế đất ở/năm (đồng)
       const isO=p.nhom_dat==="Đất ở/thổ cư";
-      const estLabel=isO?"GIÁ TRỊ & THUẾ ĐẤT Ở"
-                        :`ƯỚC TÍNH NẾU LÀ ĐẤT Ở · thửa hiện: ${p.nhom_dat}`;
+      const estLabel=isO?"<b>GIÁ TRỊ &amp; THUẾ ĐẤT Ở</b>"
+                        :`<b>ƯỚC TÍNH NẾU LÀ ĐẤT Ở</b> · thửa hiện: ${p.nhom_dat}`;
       priceHTML=`<div style="margin-top:8px;padding-top:8px;border-top:2px solid ${col}">
         <div style="font-size:11px;color:#6b7167;margin-bottom:4px">GIÁ ĐẤT THEO TUYẾN · ${pr.rule.ten} <span style="color:#aaa">(~${Math.round(pr.dist)}m)</span></div>
         <div class="pp-vals">
@@ -326,14 +328,14 @@ map.on("load", async ()=>{
         <div style="font-size:10px;color:#8a8f84;margin-top:4px">nghìn đồng/m²${pr.rule.note?" · "+pr.rule.note:""}</div>
       </div>
       <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #ccc">
-        <div style="font-size:11px;color:#6b7167;margin-bottom:5px">${estLabel}</div>
+        <div style="font-size:14px;color:#14271c;margin-bottom:5px">${estLabel}</div>
         <div class="row"><span>Giá trị thửa (giá NN)</span><span><b style="color:var(--green)">${fmtTien(giaTri)}</b></span></div>
         <div class="row"><span>Thuế đất / năm</span><span><b style="color:var(--accent)">${fmtTien(thue)}</b></span></div>
-        <div style="font-size:10px;color:#8a8f84;margin-top:5px">${dt.toLocaleString('vi')} m² × ${dgO.toLocaleString('vi')} nghìn · hạn mức ${hm}m² · thuế suất 0,03–0,15% (TT 153/2011). Số liệu chỉ để tham khảo.</div>
+        <div style="font-size:10px;color:#8a8f84;margin-top:5px">${dt.toLocaleString('vi')} m² × ${dgO.toLocaleString('vi')} nghìn · hạn mức ${hm}m² · thuế suất 0,03–0,15% (TT 153/2011). Số liệu chỉ là <b>ước tính</b> tham khảo.</div>
       </div>`;
     }else{
       priceHTML=`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #ccc;font-size:11px;color:#8a8f84">
-        Vị trí này không sát tuyến nào trong bảng giá nên chưa ước tính được giá trị/thuế. Đất nội bộ khu dân cư áp giá theo bề rộng đường — xem mục Bảng giá.</div>`;
+        Vị trí này không sát tuyến nào trong bảng giá nên chưa <b>ước tính</b> được giá trị/thuế. Đất nội bộ khu dân cư áp giá theo bề rộng đường — xem mục Bảng giá.</div>`;
     }
     new maplibregl.Popup({maxWidth:"300px"})
       .setLngLat(e.lngLat)
@@ -444,7 +446,9 @@ document.getElementById("qh-opac").addEventListener("input",e=>{
 const hidden=new Set();
 function buildLegend(){
   const el=document.getElementById("legend");
+  const present = DATA ? new Set(DATA.features.map(f=>f.properties.nhom_dat)) : null;
   Object.entries(COLORS).forEach(([name,col])=>{
+    if(present && !present.has(name)) return; // bỏ qua nhóm không xuất hiện trong dữ liệu (vd alias)
     const id="lg-"+name;
     const l=document.createElement("label");
     l.innerHTML=`<input type="checkbox" checked data-n="${name}">
