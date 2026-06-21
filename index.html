@@ -126,6 +126,17 @@
   </div>
 
   <div class="blk">
+    <h2>Lớp quy hoạch</h2>
+    <label style="display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer;margin-bottom:8px">
+      <input type="checkbox" id="qh-toggle" checked style="accent-color:var(--green)">
+      Hiện lớp quy hoạch sử dụng đất
+    </label>
+    <div class="opac"><span>Mờ</span><input id="qh-opac" type="range" min="0" max="100" value="55"><span>Rõ</span></div>
+    <div id="qh-status" style="font-size:11px;color:#8a8f84;margin-top:6px"></div>
+    <div class="legend" id="qh-legend" style="margin-top:8px"></div>
+  </div>
+
+  <div class="blk">
     <h2>Độ mờ lớp thửa</h2>
     <div class="opac"><span>Mờ</span><input id="opac" type="range" min="0" max="100" value="70"><span>Rõ</span></div>
   </div>
@@ -155,6 +166,7 @@
     Thông tin chỉ mang tính <b>tham khảo</b>, không thay thế văn bản pháp lý gốc.
     Giá đất theo Nghị quyết 87/2025/NQ-HĐND (áp dụng từ 01/01/2026). Ranh thửa từ dữ liệu địa chính 2022.
     Thuế đất tính theo TT 153/2011/TT-BTC, hạn mức theo QĐ 36/2024 Bình Dương — số liệu là ước tính, không phải thông báo thuế chính thức.
+    Lớp quy hoạch theo đồ án quy hoạch phân khu (điều chỉnh cục bộ) Hòa Lợi - Tân Định.
     Đã ẩn thông tin chủ sử dụng đất. Nền bản đồ © OpenStreetMap.
   </div>
 </div>
@@ -276,6 +288,8 @@ map.on("load", async ()=>{
   map.addLayer({id:"thua-hl",type:"line",source:"thua",
     paint:{"line-color":"#14271c","line-width":2.5},filter:["==","so_thua",-1]});
 
+  loadQuyHoach();   // tải lớp quy hoạch (đặt dưới lớp thửa)
+
   // fit tới dữ liệu
   const b=new maplibregl.LngLatBounds();
   fc.features.forEach(f=>{
@@ -382,6 +396,51 @@ function getPriceAt(lngLat){
   }
   return bestD<=80 ? {rule:best.rule,dist:bestD} : null;
 }
+
+/* ---------- Lớp quy hoạch sử dụng đất ---------- */
+const QH_COLORS={
+  "Đất ở":"#e74c3c","Đất ở hỗn hợp":"#e67e22","Cây xanh":"#27ae60",
+  "Thương mại - dịch vụ":"#9b59b6","Giáo dục":"#5dade2","Mặt nước":"#3498db",
+  "Công cộng":"#f39c12","Tôn giáo - di tích":"#8e44ad","Y tế":"#e84393","Thể thao":"#16a085"
+};
+async function loadQuyHoach(){
+  const st=document.getElementById("qh-status");
+  let qh;
+  try{ qh=await (await fetch("./quy_hoach.geojson")).json(); }
+  catch(e){ st.textContent="⚠️ Không tải được lớp quy hoạch (thiếu file quy_hoach.geojson)."; return; }
+  map.addSource("qh",{type:"geojson",data:qh});
+  map.addLayer({id:"qh-fill",type:"fill",source:"qh",
+    paint:{"fill-color":["get","mau"],"fill-opacity":0.55}},"thua-fill");
+  map.addLayer({id:"qh-line",type:"line",source:"qh",
+    paint:{"line-color":"#ffffff","line-width":0.6}},"thua-fill");
+  st.textContent=`Đã tải ${qh.features.length} ô quy hoạch (Hòa Lợi + Tân Định). Bấm vào ô để xem chức năng.`;
+  buildQHLegend();
+  map.on("click","qh-fill",(e)=>{
+    if(map.getLayer("thua-fill")&&map.queryRenderedFeatures(e.point,{layers:["thua-fill"]}).length) return;
+    const q=e.features[0].properties;
+    new maplibregl.Popup({maxWidth:"260px"}).setLngLat(e.lngLat)
+      .setHTML(`<div class="pp"><h3>Quy hoạch sử dụng đất</h3>
+        <span class="tag" style="background:${q.mau}">${q.loai_qh}</span>
+        <div style="font-size:10.5px;color:#8a8f84;margin-top:7px">Theo đồ án quy hoạch phân khu (điều chỉnh). Chỉ để tham khảo, đối chiếu văn bản gốc khi cần.</div>
+      </div>`).addTo(map);
+  });
+}
+function buildQHLegend(){
+  const el=document.getElementById("qh-legend");
+  Object.entries(QH_COLORS).forEach(([name,col])=>{
+    const l=document.createElement("label");
+    l.style.cssText="display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 2px";
+    l.innerHTML=`<span class="sw" style="background:${col};opacity:.7"></span>${name}`;
+    el.appendChild(l);
+  });
+}
+document.getElementById("qh-toggle").addEventListener("change",e=>{
+  const v=e.target.checked?"visible":"none";
+  ["qh-fill","qh-line"].forEach(id=>{ if(map.getLayer(id)) map.setLayoutProperty(id,"visibility",v); });
+});
+document.getElementById("qh-opac").addEventListener("input",e=>{
+  if(map.getLayer("qh-fill")) map.setPaintProperty("qh-fill","fill-opacity",e.target.value/100);
+});
 const hidden=new Set();
 function buildLegend(){
   const el=document.getElementById("legend");
