@@ -403,7 +403,8 @@ function getPriceAt(lngLat){
 const QH_COLORS={
   "Đất ở":"#e74c3c","Đất ở hỗn hợp":"#e67e22","Cây xanh":"#27ae60",
   "Thương mại - dịch vụ":"#9b59b6","Giáo dục":"#5dade2","Mặt nước":"#3498db",
-  "Công cộng":"#f39c12","Tôn giáo - di tích":"#8e44ad","Y tế":"#e84393","Thể thao":"#16a085"
+  "Công cộng":"#f39c12","Tôn giáo - di tích":"#8e44ad","Y tế":"#e84393","Thể thao":"#16a085",
+  "An ninh quốc phòng":"#566573","Khu dự trữ phát triển":"#ccd1d1","Nghĩa trang":"#839192"
 };
 async function loadQuyHoach(){
   const st=document.getElementById("qh-status");
@@ -416,7 +417,7 @@ async function loadQuyHoach(){
   map.addLayer({id:"qh-line",type:"line",source:"qh",
     paint:{"line-color":"#ffffff","line-width":0.6}},"thua-fill");
   st.textContent=`Đã tải ${qh.features.length} ô quy hoạch (Hòa Lợi + Tân Định). Bấm vào ô để xem chức năng.`;
-  buildQHLegend();
+  buildQHLegend(new Set(qh.features.map(f=>f.properties.loai_qh)));
   map.on("click","qh-fill",(e)=>{
     if(map.getLayer("thua-fill")&&map.queryRenderedFeatures(e.point,{layers:["thua-fill"]}).length) return;
     const q=e.features[0].properties;
@@ -427,9 +428,10 @@ async function loadQuyHoach(){
       </div>`).addTo(map);
   });
 }
-function buildQHLegend(){
+function buildQHLegend(present){
   const el=document.getElementById("qh-legend");
   Object.entries(QH_COLORS).forEach(([name,col])=>{
+    if(present && !present.has(name)) return;
     const l=document.createElement("label");
     l.style.cssText="display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 2px";
     l.innerHTML=`<span class="sw" style="background:${col};opacity:.7"></span>${name}`;
